@@ -76,11 +76,23 @@ public class SubjectDatabase {
         subjectDetails.forEach(System.out::println);
         return subjectDetails;
     }
+    public Subject getSubjectByName(String subjectName) {
+        try {
+            for (Subject subject : subjectDetails) {
+                if (subject.getName().equals(subjectName)) {
+                    return subject;
+                }
+            }
+        } catch (Exception error) {
+            System.out.println("Failed to add new Subject into System." +
+                    "Error : Subject not found in system");
+        }
+        return null;
+    }
     public void addSubjectDetails(Subject subject) {
         this.subjectDetails.add(subject);
     }
     public static void main(String[] args) {
         SubjectDatabase database = new SubjectDatabase();
-        //TODO connect two db
     }
 }
