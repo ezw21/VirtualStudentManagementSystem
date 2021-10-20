@@ -87,6 +87,7 @@ public class SubjectDatabase {
             System.out.println("Failed to add new Subject into System." +
                     "Error : Subject not found in system");
         }
+        System.out.println("Subject cant be found in the system with the input, please try again.");
         return null;
     }
     public void addSubjectDetails(Subject subject) {

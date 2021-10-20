@@ -15,7 +15,7 @@ public class School
     public School()
     {
         studentDatabase = new StudentDatabase();
-//        mainMenu();
+        mainMenu();
     }
     
     /**
@@ -25,38 +25,38 @@ public class School
     {
         switch (actionCode)
         {
-            case(1):                                                                                     //option (1)
-                addNewStudentAction();break;
-                //Done
-            case(2):                                                                                     //option (2)
-                //deleteStudent();break;
-                //DONE
-            case(3):                                                                                     //option (3)
-                //toggleSuspend();break;
-                //DONE
-            case(4):                                                                                     //option (4)
-                //modifyStudent();break;
-            case(5):                                                                                     //option (5)
-//                listStudentsBySubjects();break;
-                //Edward call the method 2moro
-            case(6):                                                                                     //option (6)
-                //listSuspendedStudents();break;
-                //Edward call the subject 2moro
-            case(7):                                                                                     //option (7)
-                studentDatabase.getStudentDetails();break;
+            case(1):                                                                                     //option (1) -- Add new student
+                addNewStudent();
+                mainMenu();break;
+            case(2):                                                                                     //option (2) -- Delete a student
+                studentDatabase.deleteStudent(checkValidIntegerRange(1, 999));
+                mainMenu();break;
+            case(3):                                                                                     //option (3) -- Suspend/Unsuspend a student
+                studentDatabase.toggleSuspended(checkValidIntegerRange(1, 999));
+                mainMenu();break;
+            case(4):                                                                                     //option (4) -- Modify student details
+                modifyStudent();
+                mainMenu();break;
+            case(5):                                                                                     //option (5) -- List student(s) by subject
+                studentDatabase.getStudentBySubject(subjectNameInput());
+                mainMenu();break;
+            case(6):                                                                                     //option (6) -- List student that are suspended
+                studentDatabase.getSuspendedNameList();
+                mainMenu();break;
+            case(7):                                                                                     //option (7) -- List all student(s) from database
+                studentDatabase.getStudentDetails();
+                mainMenu();break;
             case(8):                                                                                     //option (8)
                 System.out.println("Goodbye...");break;
             default:
                 System.out.println("\n Please enter from action 1 to 8");
                 mainMenu();
         }
-        
     }
     /**
      * Show main menu.
      */
-    public void mainMenu()
-    {
+    public void mainMenu() {
         System.out.println("\nWelcome to the Student Management System");
         System.out.println("===================================");
         System.out.println("(1) Add New Student");
@@ -80,8 +80,7 @@ public class School
      * @param upperBound        UpperBound of the accepted range
      * @return number           Number typed by user and passed all validation
      */
-    public int checkValidIntegerRange(int lowerBound, int upperBound) 
-    {
+    public int checkValidIntegerRange(int lowerBound, int upperBound){
         Scanner scanner = new Scanner(System.in);
         int number;
         do 
@@ -97,6 +96,14 @@ public class School
         while (number < lowerBound || number > upperBound);
         return number;
     }
+    public boolean validateString(String testString){
+        for(int i = 0; i < testString.length(); i++) {
+            if(!Character.isLetter(testString.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
     public String checkValidString() {
         Scanner scanner = new Scanner(System.in);
         String name;
@@ -110,52 +117,93 @@ public class School
             }
             name = scanner.nextLine();
         }
-        while (validateString(name));
+        while (!validateString(name));
         return name;
     }
+    public String subjectNameInput() {
+        Scanner scanner = new Scanner(System.in);
+        String name;
+        System.out.println("Please enter a valid subject name with appropriate SPACE and SPECIAL CHARACTER");
+        while(!scanner.hasNextLine())                            // check if input has only string
+        {
+            System.out.println("Please enter a valid input ");
+            scanner.next();                                     //continue to look next input
+        }
+        name = scanner.nextLine();
+        return name;
+    }
+    public String getInputName() {
+        System.out.println("Please enter a name for the student");
+         return checkValidString();
+    }
+    public Integer getInputId() {
+        System.out.println("Please enter a student ID for new student");
+        int id = checkValidIntegerRange(100, 999);
+        while (!checkIdAvailable(id)) {
+            System.out.println("The ID is not available, please enter another ID");
+            id = checkValidIntegerRange(100, 999);
+        }
+        return id;
+    }
+    public boolean getInputBoolean() {
+        System.out.println("Please enter suspended status for new student. " +
+                "\n ***'Y' for yes/true ; 'N' for no/false***");
+        return convertStringToBoolean(checkValidString());
+}
     public boolean convertStringToBoolean(String string) {
         while (!string.equals("Y")  && !string.equals("N")) {
             string = checkValidString();
         }
         return (string.equals("Y")) ? true : false;
     }
-    /**
-     * Add student
-     */
-    public void addNewStudentAction() {
-        Scanner scanner = new Scanner(System.in);
-        String name;
-        int id;
-        boolean status;
-
-        System.out.println("Please enter a name for new student");
-        name = checkValidString();
-        System.out.println("Please enter a student ID for new student");
-        id = checkValidIntegerRange(100, 999);
-        while (!checkIdAvailable(id)) {
-            System.out.println("The ID is not available, please enter another ID");
-            id = checkValidIntegerRange(100, 999);
-        }
-        System.out.println("Please enter suspended status for new student. " +
-                "\n ***'Y' for yes/true ; 'N' for no/false***");
-        status = convertStringToBoolean(checkValidString());
+    public void addNewStudent() {
+        String name; int id; boolean status;
         Set<Subject> subjectList= new HashSet<>();
-        System.out.println("DO you wan to add subject(s) to this student?");
-        boolean addSubject;
-        addSubject = convertStringToBoolean(checkValidString());
 
-        // CreditPoint  <= 15 and still wanting to add subject, stay in while loop
+        name = getInputName();
+        id = getInputId();
+        status = getInputBoolean();
+        subjectList = constructSubjectList(subjectList);
+
+        studentDatabase.addNewStudent(name,id, status, subjectList);
+        System.out.println(String.format("Successfully enrolled a new student with these details stored in system\n %s",studentDatabase.getStudentById(id)));
+    }
+    public Set<Subject> constructSubjectList(Set<Subject> subjectList) {
+        boolean addSubject;
+
+        System.out.println(String.format("Current subject list = %s \nDO you wish to add another subject to this student?", subjectList));
+        addSubject = convertStringToBoolean(checkValidString());
         while (checkSubjectsValidCredit(subjectList) && addSubject) {
-            System.out.println("What Subject do you wan to enroll for this student?");
-            subjectList.add(studentDatabase.subjectDatabase.getSubjectByName(checkValidString()));
-            System.out.println("DO you wish to add another subject to this student?");
+            studentDatabase.subjectDatabase.getSubjectDetails();
+            System.out.println("Please type in a available subject name that shown in the list above." +
+                    "\nWhat Subject do you wan to enroll for this student? (e.g Maths or RocketScience **CAPITAL AND SPACE SENSITIVE)");
+            Subject newSubject = studentDatabase.subjectDatabase.getSubjectByName(subjectNameInput());
+
+            if(newSubject == null) System.out.println("Subject name cant be found, please try again.");
+            else if(subjectList.contains(newSubject)) System.out.println("You had already picked this subject.");
+            else subjectList.add(newSubject);
+            if(!checkSubjectsValidCredit(subjectList)) {
+                System.out.println("Subject List exceeded 15 credit points, removing the last added subject...");
+                subjectList.remove(newSubject);
+            }
+            System.out.println(String.format("Current subject list = %s \nDO you wish to add another subject to this student?", subjectList));
             addSubject = convertStringToBoolean(checkValidString());
         }
-        System.out.println("SubjectList confirmed, enrolling student..");
-        System.out.println(studentDatabase.studentDetails.size());
-        studentDatabase.addNewStudent(name,id, status, subjectList);
-        System.out.println(studentDatabase.studentDetails.size());
+        return subjectList;
+}
+    public void modifyStudent() {
+        String name; int id;
 
+        System.out.println("Please enter the ID of the student you wan to modify");
+        Student student = studentDatabase.getStudentById(checkValidIntegerRange(100, 999));
+        while(student == null) {
+            student = studentDatabase.getStudentById(checkValidIntegerRange(100, 999));
+        }
+        id = student.getId();
+        name = getInputName();
+        Set<Subject> subjectList = constructSubjectList(student.getSubjects());
+
+        studentDatabase.modifyStudent(id, name, subjectList);
     }
     public boolean checkIdAvailable(int id) {
         // Return true if system cannot get student details;
@@ -176,39 +224,8 @@ public class School
         if(creditPoints <= 15) return true;
         else return false;
     }
-
-    /**
-     * Validate string.
-     */
-    public boolean validateString(String testString){
-        for(int i = 0; i < testString.length(); i++) {
-            if(!Character.isLetter(testString.charAt(i)) || testString.charAt(i) != ' ') {
-                return false;
-            }
-        }
-        return true;
-    }
-    /**
-      * Delete student
-      */
-    public void deleteStudent() {
-        studentDatabase.deleteStudent(checkValidIntegerRange(1, 999));
-    }
-    public void toggleSuspend() {
-        studentDatabase.toggleSuspended(checkValidIntegerRange(1, 999));
-    }
-    /**
-     * Modify student
-     */
-
     public static void main(String[] args) {
         School school = new School();
-        System.out.println(school.studentDatabase.getStudentBySubject("Maths"));
-
-        System.out.println("What subject's student list you wan to view?");
-        String name = school.checkValidString();
-        System.out.println(school.studentDatabase.getStudentBySubject(name));
-        // Tutor I have some comment for you => Be good, coding is easy if you are gud, sadly you are not
     }
 
 }

@@ -79,6 +79,7 @@ public class StudentDatabase {
         try {
             Student student = getStudentById(id);
             studentDetails.remove(student);
+            System.out.println(String.format("Successfully deleted the student with these details\n %s",getStudentById(id)));
         }catch(Exception error) {
             System.out.println("Failed to delete student. \" +\n" +
                     "                    \"Error : Invalid ID");
@@ -86,11 +87,12 @@ public class StudentDatabase {
 
     }
     public void toggleSuspended(Integer id) {
-
         try {
             for (Student studentInSystem : studentDetails) {
                 if(studentInSystem.getId() == id) {
                     studentInSystem.setSuspendedStatus(!studentInSystem.isSuspended());
+                    System.out.println(String.format("Successfully updated the student with these details\n %s" +
+                            " from %s to %s",getStudentById(id), !studentInSystem.isSuspended(), studentInSystem.isSuspended()));
                 }
             }
         } catch (Exception error) {
@@ -116,16 +118,19 @@ public class StudentDatabase {
         if(subjectDatabase.subjectList.contains(subjectName)) {
             for (Student studentInSystem : studentDetails) {
                 for (Subject subject : studentInSystem.getSubjects()) {
-                    if(subject.getName().equals(subjectName) &&
+                    if (subject.getName().equals(subjectName) &&
                             !studentInSystem.isSuspended()) {
                         studentBySubject.add(studentInSystem.getName());
                     }
                 }
             }
-        } else {
+            if (studentBySubject.size() == 0) System.out.println("No student are enrolled in this course (Suspended student are removed from the list)");
+        }
+        else {
             System.out.println("Failed to get student(s) bu subject. " +
                     "Error : Subject not in the system.");
         }
+        System.out.println(studentBySubject);
         return studentBySubject;
     }
     public Set<String> getStudentNameList() {
@@ -138,9 +143,10 @@ public class StudentDatabase {
     public Set<String> getSuspendedNameList() {
         Set<String> studentList = new HashSet<>();
         for (Student studentInSystem : studentDetails) {
-            if(studentInSystem.isSuspended())
-            studentList.add(studentInSystem.getName());
+            if(studentInSystem.isSuspended()) studentList.add(studentInSystem.getName());
         }
+        if (studentList.size() == 0) System.out.println("No student are currently suspended.");
+        else System.out.println(studentList);
         return studentList;
     }
     public Set<Student> getStudentDetails() {
@@ -150,57 +156,5 @@ public class StudentDatabase {
                     student.isSuspended(),student.getSubjects());
         }
         return studentDetails;
-    }
-    public static void main(String[] args) {
-        StudentDatabase database = new StudentDatabase();
-//        database.testAddStudent();
-//        database.testDeleteStudent();
-//        database.testUpdateSuspend();
-//        database.testModifyStudent();
-//        database.testSuspendedStudentList();
-//        database.testStudentNameList();
-//        database.testGetStudentBySubject();
-        String stats = "H";
-
-    }
-    // Testing methods for Action_1 - 7, !Action 8 exit()
-    public void testAddStudent() {
-        StudentDatabase db = new StudentDatabase();
-        System.out.println(db.studentDetails.size());
-        db.addNewStudent("foo", 30, false, new HashSet<>());
-        System.out.println(db.studentDetails.size());
-    }
-    public void testDeleteStudent() {
-        StudentDatabase db = new StudentDatabase();
-        System.out.println(db.studentDetails.size());
-        db.deleteStudent(111);
-        System.out.println(db.studentDetails.size());
-    }
-    public void testUpdateSuspend() {
-        StudentDatabase db = new StudentDatabase();
-        System.out.println(db.getStudentById(111).isSuspended());
-        db.toggleSuspended(111);
-        System.out.println(db.getStudentById(111).isSuspended());
-    }
-    public void testModifyStudent() {
-        StudentDatabase db = new StudentDatabase();
-        System.out.println(db.getStudentById(111));
-        db.modifyStudent(111, "Foo", db.getStudentById(111).getSubjects());
-        System.out.println(db.getStudentById(111));
-    }
-    public void testSuspendedStudentList() {
-        StudentDatabase db = new StudentDatabase();
-        System.out.println(db.getSuspendedNameList());
-    }
-    public void testStudentNameList() {
-        StudentDatabase db = new StudentDatabase();
-        System.out.println(db.getStudentNameList());
-    }
-    public void testGetStudentBySubject() {
-        StudentDatabase db = new StudentDatabase();
-        Set<Subject> tempSet = new HashSet();
-        tempSet.add(new Subject("Maths", 4));
-        db.addNewStudent("Cibai", 999, false, tempSet);
-        System.out.println(db.getStudentBySubject("Maths"));
     }
 }
